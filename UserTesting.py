@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 
+#draws pie chart for manual classification
 def drawPieCharts(classes, dataset):
+    #default vars which will decide size of each section
     maniacs = 0 
     goalscorers = 0
     playmakers = 0
@@ -11,8 +13,13 @@ def drawPieCharts(classes, dataset):
     weak_links = 0
     others = 0
 
+    #iterate through the classes dictionary
     for player_id, player_data in dataset:
+
+        #get the class string from each player ID
         classification = classes[player_id]
+
+        #add one to the counter of the appropriate class as it is found in dictionary
         if classification == "Maniac":
             maniacs += 1
         elif classification == "Goalscorer":
@@ -32,27 +39,22 @@ def drawPieCharts(classes, dataset):
         else:
             others += 1
 
-    print("Maniacs:", maniacs)
-    print("Goalscorers:", goalscorers)
-    print("Playmakers:", playmakers)
-    print("Goalkeepers:", goalkeepers)
-    print("Defenders:", defenders)
-    print("All Rounders:", all_rounders)
-    print("MVPs:", MVPs)
-    print("Weak Links:", weak_links)
-    print("Undefined:", others)
-
+    #define labels for each section
     labels = 'Maniac', 'Goalscorer', 'Playmaker', 'Goalkeeper', 'Defender', 'All Rounder', 'MVP', "Weak Link", "Undefined"
+
+    #use the counters to correctly size each section next to their labels
     sizes = [maniacs, goalscorers, playmakers, goalkeepers, defenders, all_rounders, MVPs, weak_links, others]
 
+    #create the pie chart
     fig1, ax1 = plt.subplots()
-    ax1.pie(sizes, labels=labels, autopct='%1.1f%%')
+    ax1.pie(sizes, labels=labels, autopct='%1.1f%%')    #uses sizes and labels lists from above, autopct rounds each section to 1dp
 
+    #display
     plt.show()
 
-
-
+#draws pie chart for AI classification
 def drawPieChartsAI(classes, dataset):
+    #all is exactly the same as the function above, except the first iterator works slightly differently
     maniacs = 0 
     goalscorers = 0
     playmakers = 0
@@ -65,6 +67,8 @@ def drawPieChartsAI(classes, dataset):
 
     for player_id, player_data in dataset:
         classification = classes[player_id]
+        #largely the same as above, however since the AI is using integers to store class with each ID, it must check which integer
+        #is found in each iteration instead of which string, could have been done in same function but this way is more maintainable
         if classification == 1:
             maniacs += 1
         elif classification == 2:
@@ -83,16 +87,6 @@ def drawPieChartsAI(classes, dataset):
             weak_links += 1
         else:
             others += 1
-
-    print("Maniacs:", maniacs)
-    print("Goalscorers:", goalscorers)
-    print("Playmakers:", playmakers)
-    print("Goalkeepers:", goalkeepers)
-    print("Defenders:", defenders)
-    print("All Rounders:", all_rounders)
-    print("MVPs:", MVPs)
-    print("Weak Links:", weak_links)
-    print("Undefined:", others)
 
     labels = 'Maniac', 'Goalscorer', 'Playmaker', 'Goalkeeper', 'Defender', 'All Rounder', 'MVP', "Weak Link", "Undefined"
     sizes = [maniacs, goalscorers, playmakers, goalkeepers, defenders, all_rounders, MVPs, weak_links, others]

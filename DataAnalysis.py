@@ -21,9 +21,9 @@ norm_supersonic_list = []
 playerClassifications = {}
 playerClassificationsAI = {}
 
+#function to manually classify players - used to train AI and also compare the AI predictions against "true" classes
 def classifyPlayers(players, matches):
-
-    #get averages for each player in the dataset
+    #finds the highest scoring value in each section of the dataset
     for player_id, player_data in players:
         filled_data = player_data[['core_goals', 'core_assists', 'core_saves', 'demo_inflicted', 'movement_percent_supersonic_speed']].fillna(0)
         total_goals = filled_data['core_goals'].sum()
@@ -46,8 +46,13 @@ def classifyPlayers(players, matches):
         total_supersonic_list.append(total_supersonic)
         most_supersonic = max(total_supersonic_list)
 
+    #finds each players average goals per game and then normalizes this by dividing it by the highest scoring
     for player_id, player_data in players:
+        #fill any blank spots in the dataset
         filled_data = player_data[['core_goals', 'core_assists', 'core_saves', 'demo_inflicted', 'movement_percent_supersonic_speed']].fillna(0)
+        
+        #calculate player's goals across all games, divide this by number of games they played to get average per game and
+        #divide this by the most goals scored to normalize
         total_goals = filled_data['core_goals'].sum()
         avg_goals = total_goals / matches[player_id]
         norm_goals = avg_goals / most_goals
@@ -75,15 +80,19 @@ def classifyPlayers(players, matches):
         norm_demos_list.append(norm_demos)
         norm_supersonic_list.append(norm_time_supersonic)
 
-    #calculate overal averages
+    #calculate overall averages by taking the average of all normalized goals in the lists
     avg_goals_ovr = mean(norm_goals_list)
     avg_assists_ovr = mean(norm_assists_list)
     avg_saves_ovr = mean(norm_saves_list)
     avg_demos_ovr = mean(norm_demos_list)
     avg_supersonic_ovr = mean(norm_supersonic_list)
 
+    #gets the normal for each player's statistics again before comparing these to the classification rules and giving each player a class
     for player_id, player_data in players:
+        #fill any blank spots in the dataset
         filled_data = player_data[['core_goals', 'core_assists', 'core_saves', 'demo_inflicted', 'movement_percent_supersonic_speed']].fillna(0)
+        
+        #calculate normalized stats
         total_goals = filled_data['core_goals'].sum()
         avg_goals = total_goals / matches[player_id]
         norm_goals = avg_goals / most_goals
@@ -104,7 +113,7 @@ def classifyPlayers(players, matches):
         avg_time_supersonic = total_time_supersonic / matches[player_id]
         norm_time_supersonic = avg_time_supersonic / most_supersonic
 
-        #set rules for each class
+        #compare normalized values to rules for each class and store the correct class in the dictionary next to player ID
         if  norm_demos > avg_demos_ovr and norm_time_supersonic > avg_supersonic_ovr:
             playerClassifications[player_id] = "Maniac"
         elif norm_goals > avg_goals_ovr and norm_saves < avg_saves_ovr and norm_assists < avg_assists_ovr:
@@ -126,16 +135,19 @@ def classifyPlayers(players, matches):
         else:
             playerClassifications[player_id] = "Unclassified"
 
+    #draw a pie chart showing the number of players per class
     tests.drawPieCharts(playerClassifications, players)
 
+#very similar to above function but done vi AI
 def classifyPlayersAI(players, matches):
     X = []  # player stats
     y = []  # class names
-    player_predictions = {}
 
+    #scan over all of the dataset
     for player_id, player_data in players:
         #iterate over every row
         for index, row in player_data.iterrows():
+            #gets the stats per game for each player
             stats = [
                 row['core_goals'] / matches[player_id],
                 row['core_assists'] / matches[player_id],
@@ -143,11 +155,15 @@ def classifyPlayersAI(players, matches):
                 row['demo_inflicted'] / matches[player_id],
                 row['movement_percent_supersonic_speed'] / matches[player_id]
             ]
+
+            #add these stats to the AI's knowledge listW of player stats
             X.append(stats)
 
-            # have AI decide on the correct class based on the rules
+            #gets the classification of each player from the dictionary created above
             classification = playerClassifications[player_id]
 
+            #turns each class into a value to make it easier for outputting from the AI (essentially works like having an int array instead
+            #of a string array)
             if classification == "Maniac":
                 y.append(1)
             elif classification == "Goalscorer":
@@ -171,15 +187,14 @@ def classifyPlayersAI(players, matches):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     #begin to train the AI
-    clf = DecisionTreeClassifier()
-    clf.fit(X_train, y_train)
+    clf = DecisionTreeClassifier()      #creates a new decision tree classifier for supervised learning
+    clf.fit(X_train, y_train)   #uses the player stats stored in X and labels attached to these stats in Y to learn the class rules
 
     #make predictions
-    y_predict = clf.predict(X_test)
-    print("Number of keys in players dictionary:", len(players))
+    y_predict = clf.predict(X_test)     #uses the portion of data stored in x_test to make predictions and stores these labels in y_predict
 
     #iterate through the AI's predictions and store them in a second dictionary
-    for i, (player_id, _) in enumerate(players):
-       playerClassificationsAI[player_id ] = player_predictions[player_id] = y_predict[i]
-    print(playerClassificationsAI)
-    tests.drawPieChartsAI(playerClassificationsAI, players)
+    for i, (player_id, _) in enumerate(players):       #for loop which cycles through all of the players dataset
+        playerClassificationsAI[player_id] = y_predict[i]   #stores all predicted classes into dictionary next to correct player ID
+
+    tests.drawPieChartsAI(playerClassificationsAI, players)     #draws a pie chart displaying how the AI predicted the split of classes
