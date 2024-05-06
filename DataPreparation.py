@@ -1,4 +1,3 @@
-import numpy
 import pandas
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans 
@@ -36,14 +35,15 @@ def plotElbow():
     plt.plot(wss) 
     plt.show()
 
-def getClusters(optimal):
+def getClusters(optimal, region_data):
+    filled_data = region_data[['core_goals', 'core_assists', 'core_saves', 'demo_inflicted', 'movement_percent_supersonic_speed']].fillna(0)
     kmeans = KMeans(n_clusters = optimal, random_state = 0, n_init = "auto").fit(filled_data)
     clusterCentres  =  pandas.DataFrame(kmeans.cluster_centers_)   
 
     clusterCentres.columns = ['core_goals', 'core_assists', 'core_saves', 'core_demos', 'movement_percent_supersonic_speed']
 
-    plt.scatter(clusterCentres['core_goals'], clusterCentres['core_assists'])
+    plt.scatter(clusterCentres['core_demos'], clusterCentres['core_saves'])
     ax = plt.gca()
-    ax.set_xlabel('Goals')
-    ax.set_ylabel('Assists')
+    ax.set_xlabel('Demos')
+    ax.set_ylabel('Saves')
     plt.show()
