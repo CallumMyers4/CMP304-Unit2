@@ -16,6 +16,9 @@ norm_saves_list = []
 norm_demos_list = []
 norm_supersonic_list = []
 
+#dictionary list to store classes against player IDs
+playerClassifications = {}
+
 def classifyPlayers(players, matches):
     #get averages for each player in the dataset
     for player_id, player_data in players:
@@ -98,15 +101,75 @@ def classifyPlayers(players, matches):
         avg_time_supersonic = total_time_supersonic / matches[player_id]
         norm_time_supersonic = avg_time_supersonic / most_supersonic
 
-        if  norm_goals > avg_goals_ovr:
-            print(f"Player {player_id} is a goal scorer.")
-        elif norm_assists > avg_assists_ovr:
-            print(f"Player {player_id} is an assist provider.")
-        elif norm_saves > avg_saves_ovr:
-            print(f"Player {player_id} is a goalie.")
-        elif norm_demos > avg_demos_ovr:
-            print(f"Player {player_id} is a demo expert.")
-        elif norm_time_supersonic > avg_supersonic_ovr:
-            print(f"Player {player_id} spends a lot of time supersonic.")
+        if  norm_demos > avg_demos_ovr and norm_time_supersonic > avg_supersonic_ovr:
+            playerClassifications[player_id] = "Maniac"
+        elif norm_goals > avg_goals_ovr and norm_saves < avg_saves_ovr and norm_assists < avg_assists_ovr:
+            playerClassifications[player_id] = "Goalscorer"
+        elif norm_goals > avg_goals_ovr and norm_assists > avg_assists_ovr and norm_saves < avg_saves_ovr:
+            playerClassifications[player_id] = "Playmaker"
+        elif norm_saves > avg_saves and norm_goals < avg_goals_ovr and norm_assists < avg_assists_ovr:
+            playerClassifications[player_id] = "Goalkeeper"
+        elif norm_demos > avg_demos_ovr and norm_saves > avg_saves_ovr and norm_goals < avg_goals_ovr:
+            playerClassifications[player_id] = "Defender"
+        elif (norm_goals > (avg_goals_ovr * 0.8) and norm_goals < (avg_goals_ovr * 1.2) 
+              and norm_assists > (avg_assists_ovr * 0.8) and norm_assists < (avg_assists_ovr * 1.2)
+              and norm_saves > (avg_saves_ovr * 0.8) and norm_saves < (avg_saves_ovr * 1.2)):
+            playerClassifications[player_id] = "All Rounder"
+        elif norm_goals > avg_goals_ovr and norm_assists > avg_assists_ovr and norm_saves > avg_saves_ovr:
+            playerClassifications[player_id] = "MVP"
+        elif norm_goals < avg_goals_ovr and norm_assists < avg_assists_ovr and norm_saves < avg_saves_ovr:
+            playerClassifications[player_id] = "Weak link"
         else:
-            print(f"Player {player_id} does not fit any classification.")
+            playerClassifications[player_id] = "Unclassified"
+
+    for player_id, classification in playerClassifications.items():
+        print(f"Player {player_id} is classified as: {classification}")
+
+
+def classifyPlayersAI(players, matches):
+    X = []  #player stats
+    y = []  #class names
+
+    for player_id, player_data in players:
+        stats = [
+            player_data['core_goals'].sum() / matches[player_id],
+            player_data['core_assists'].sum() / matches[player_id],
+            player_data['core_saves'].sum() / matches[player_id],
+            player_data['demo_inflicted'].sum() / matches[player_id],
+            player_data['movement_percent_supersonic_speed'].sum() / matches[player_id]
+        ]
+        X.append(stats)
+
+        #have AI decide on the correct class based on what has been done manually above
+        classification = playerClassifications[player_id]
+        if classification == "Maniac":
+            y.append(1)
+        elif classification == "Goalscorer":
+            y.append(2)
+        elif classification == "Playmaker":
+            y.append(3)
+        elif classification == "Goalkeeper":
+            y.append(4)
+        elif classification == "Defender":
+            y.append(5)
+        elif classification == "All Rounder":
+            y.append(6)
+        elif classification == "MVP":
+            y.append(7)
+        elif classification == "Weak link":
+            y.append(8)
+        else:
+            y.append(9)
+
+    #split the data into enough to train the AI, then enough to test this learning
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    #begin to train the AI
+    clf = DecisionTreeClassifier()
+    clf.fit(X_train, y_train)
+
+    #make predictions
+    y_pred = clf.predict(X_test)
+
+    #output report showing results
+    print(classification_report(y_test, y_pred))

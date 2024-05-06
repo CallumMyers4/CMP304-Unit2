@@ -4,7 +4,7 @@ import DataAnalysis as dataAnalysis
 
 dataPrep.readData()     #read in data files
 
-optimal_clusters = 140      #decided from elbow graph
+optimal_clusters = 160      #decided from elbow graph
 elbow = input("Enter 1 to see graph, any other input to skip ")      #gives user option whether or not to see graph of optimal clusters
 
 if elbow == '1':
@@ -19,3 +19,4 @@ matches_played = player_data.size()   #the size of the player_data variable will
 dataPrep.getClusters(optimal_clusters, player_data)  #get the appropriate clusters using the optimal amount decided from the elbow check
 
 dataAnalysis.classifyPlayers(player_data, matches_played)  #gets max, avg and normalized values for all essential player data
+dataAnalysis.classifyPlayersAI(player_data, matches_played)  #gets max, avg and normalized values for all essential player data
