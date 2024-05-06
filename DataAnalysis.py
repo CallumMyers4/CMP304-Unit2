@@ -24,6 +24,8 @@ playerClassificationsAI = {}
 #function to manually classify players - used to train AI and also compare the AI predictions against "true" classes
 def classifyPlayers(players, matches):
     #finds the highest scoring value in each section of the dataset
+    print(f"Manually classifying players...")
+    print(f"Getting the highest scoring stats...")
     for player_id, player_data in players:
         filled_data = player_data[['core_goals', 'core_assists', 'core_saves', 'demo_inflicted', 'movement_percent_supersonic_speed']].fillna(0)
         total_goals = filled_data['core_goals'].sum()
@@ -47,6 +49,7 @@ def classifyPlayers(players, matches):
         most_supersonic = max(total_supersonic_list)
 
     #finds each players average goals per game and then normalizes this by dividing it by the highest scoring
+    print(f"Normalizing player data stats...")
     for player_id, player_data in players:
         #fill any blank spots in the dataset
         filled_data = player_data[['core_goals', 'core_assists', 'core_saves', 'demo_inflicted', 'movement_percent_supersonic_speed']].fillna(0)
@@ -81,6 +84,7 @@ def classifyPlayers(players, matches):
         norm_supersonic_list.append(norm_time_supersonic)
 
     #calculate overall averages by taking the average of all normalized goals in the lists
+    print(f"Calculating the average per stat...")
     avg_goals_ovr = mean(norm_goals_list)
     avg_assists_ovr = mean(norm_assists_list)
     avg_saves_ovr = mean(norm_saves_list)
@@ -88,6 +92,7 @@ def classifyPlayers(players, matches):
     avg_supersonic_ovr = mean(norm_supersonic_list)
 
     #gets the normal for each player's statistics again before comparing these to the classification rules and giving each player a class
+    print(f"Checking players against class rulesets...")
     for player_id, player_data in players:
         #fill any blank spots in the dataset
         filled_data = player_data[['core_goals', 'core_assists', 'core_saves', 'demo_inflicted', 'movement_percent_supersonic_speed']].fillna(0)
@@ -136,14 +141,17 @@ def classifyPlayers(players, matches):
             playerClassifications[player_id] = "Unclassified"
 
     #draw a pie chart showing the number of players per class
+    print(f"Drawing chart of classes...")
     tests.drawPieCharts(playerClassifications, players)
 
 #very similar to above function but done vi AI
 def classifyPlayersAI(players, matches):
+    print(f"Classifying players via AI...")
     X = []  # player stats
     y = []  # class names
 
     #scan over all of the dataset
+    print(f"Populating AI training dataset...")
     for player_id, player_data in players:
         #iterate over every row
         for index, row in player_data.iterrows():
@@ -184,17 +192,22 @@ def classifyPlayersAI(players, matches):
                 y.append(9)
 
     #split the data into enough to train the AI, then enough to test this learning
+    print(f"Splitting AI datasets...")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     #begin to train the AI
+    print(f"Training AI...")
     clf = DecisionTreeClassifier()      #creates a new decision tree classifier for supervised learning
     clf.fit(X_train, y_train)   #uses the player stats stored in X and labels attached to these stats in Y to learn the class rules
 
     #make predictions
+    print(f"Making predictions...")
     y_predict = clf.predict(X_test)     #uses the portion of data stored in x_test to make predictions and stores these labels in y_predict
 
     #iterate through the AI's predictions and store them in a second dictionary
+    print(f"Storing prediction results...")
     for i, (player_id, _) in enumerate(players):       #for loop which cycles through all of the players dataset
         playerClassificationsAI[player_id] = y_predict[i]   #stores all predicted classes into dictionary next to correct player ID
 
+    print(f"Displaying predicted classes...")
     tests.drawPieChartsAI(playerClassificationsAI, players)     #draws a pie chart displaying how the AI predicted the split of classes
