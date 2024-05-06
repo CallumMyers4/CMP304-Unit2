@@ -2,6 +2,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import classification_report
 from statistics import mean
+import UserTesting as tests
 
 #create lists to store running totals for each average
 total_goals_list = []
@@ -16,10 +17,12 @@ norm_saves_list = []
 norm_demos_list = []
 norm_supersonic_list = []
 
-#dictionary list to store classes against player IDs
+#dictionary list to store classes against player IDs (the correct one then the predicted one)
 playerClassifications = {}
+playerClassificationsAI = {}
 
 def classifyPlayers(players, matches):
+
     #get averages for each player in the dataset
     for player_id, player_data in players:
         filled_data = player_data[['core_goals', 'core_assists', 'core_saves', 'demo_inflicted', 'movement_percent_supersonic_speed']].fillna(0)
@@ -101,6 +104,7 @@ def classifyPlayers(players, matches):
         avg_time_supersonic = total_time_supersonic / matches[player_id]
         norm_time_supersonic = avg_time_supersonic / most_supersonic
 
+        #set rules for each class
         if  norm_demos > avg_demos_ovr and norm_time_supersonic > avg_supersonic_ovr:
             playerClassifications[player_id] = "Maniac"
         elif norm_goals > avg_goals_ovr and norm_saves < avg_saves_ovr and norm_assists < avg_assists_ovr:
@@ -122,44 +126,46 @@ def classifyPlayers(players, matches):
         else:
             playerClassifications[player_id] = "Unclassified"
 
-    for player_id, classification in playerClassifications.items():
-        print(f"Player {player_id} is classified as: {classification}")
-
+    tests.drawPieCharts(playerClassifications, players)
 
 def classifyPlayersAI(players, matches):
-    X = []  #player stats
-    y = []  #class names
+    X = []  # player stats
+    y = []  # class names
+    player_predictions = {}
 
     for player_id, player_data in players:
-        stats = [
-            player_data['core_goals'].sum() / matches[player_id],
-            player_data['core_assists'].sum() / matches[player_id],
-            player_data['core_saves'].sum() / matches[player_id],
-            player_data['demo_inflicted'].sum() / matches[player_id],
-            player_data['movement_percent_supersonic_speed'].sum() / matches[player_id]
-        ]
-        X.append(stats)
+        #iterate over every row
+        for index, row in player_data.iterrows():
+            stats = [
+                row['core_goals'] / matches[player_id],
+                row['core_assists'] / matches[player_id],
+                row['core_saves'] / matches[player_id],
+                row['demo_inflicted'] / matches[player_id],
+                row['movement_percent_supersonic_speed'] / matches[player_id]
+            ]
+            X.append(stats)
 
-        #have AI decide on the correct class based on what has been done manually above
-        classification = playerClassifications[player_id]
-        if classification == "Maniac":
-            y.append(1)
-        elif classification == "Goalscorer":
-            y.append(2)
-        elif classification == "Playmaker":
-            y.append(3)
-        elif classification == "Goalkeeper":
-            y.append(4)
-        elif classification == "Defender":
-            y.append(5)
-        elif classification == "All Rounder":
-            y.append(6)
-        elif classification == "MVP":
-            y.append(7)
-        elif classification == "Weak link":
-            y.append(8)
-        else:
-            y.append(9)
+            # have AI decide on the correct class based on the rules
+            classification = playerClassifications[player_id]
+
+            if classification == "Maniac":
+                y.append(1)
+            elif classification == "Goalscorer":
+                y.append(2)
+            elif classification == "Playmaker":
+                y.append(3)
+            elif classification == "Goalkeeper":
+                y.append(4)
+            elif classification == "Defender":
+                y.append(5)
+            elif classification == "All Rounder":
+                y.append(6)
+            elif classification == "MVP":
+                y.append(7)
+            elif classification == "Weak link":
+                y.append(8)
+            else:
+                y.append(9)
 
     #split the data into enough to train the AI, then enough to test this learning
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -169,7 +175,11 @@ def classifyPlayersAI(players, matches):
     clf.fit(X_train, y_train)
 
     #make predictions
-    y_pred = clf.predict(X_test)
+    y_predict = clf.predict(X_test)
+    print("Number of keys in players dictionary:", len(players))
 
-    #output report showing results
-    print(classification_report(y_test, y_pred))
+    #iterate through the AI's predictions and store them in a second dictionary
+    for i, (player_id, _) in enumerate(players):
+       playerClassificationsAI[player_id ] = player_predictions[player_id] = y_predict[i]
+    print(playerClassificationsAI)
+    tests.drawPieChartsAI(playerClassificationsAI, players)

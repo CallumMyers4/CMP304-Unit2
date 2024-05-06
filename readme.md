@@ -9,3 +9,7 @@ Sources:
     https://datagy.io/pandas-mean-average/
     Getting list average:
     https://stackoverflow.com/questions/9039961/finding-the-average-of-a-list
+    Starting AI:
+    https://www.datacamp.com/blog/classification-machine-learning
+    Dataset:
+    https://www.kaggle.com/datasets/dylanmonfret/rlcs-202122?resource=download
