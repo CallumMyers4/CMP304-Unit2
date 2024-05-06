@@ -77,13 +77,28 @@ def classifyPlayers(players, matches):
     avg_supersonic_ovr = mean(norm_supersonic_list)
 
     for player_id, player_data in players:
-        print(avg_goals_ovr)
-        print(avg_assists_ovr)
-        print(avg_saves_ovr)
-        print(avg_demos_ovr)
-        print(avg_supersonic_ovr)
+        filled_data = player_data[['core_goals', 'core_assists', 'core_saves', 'demo_inflicted', 'movement_percent_supersonic_speed']].fillna(0)
+        total_goals = filled_data['core_goals'].sum()
+        avg_goals = total_goals / matches[player_id]
+        norm_goals = avg_goals / most_goals
 
-        if norm_goals > avg_goals_ovr:
+        total_assists = filled_data['core_assists'].sum()
+        avg_assists = total_assists / matches[player_id]
+        norm_assists = avg_assists / most_assists
+
+        total_saves = filled_data['core_saves'].sum()
+        avg_saves = total_saves / matches[player_id] 
+        norm_saves = avg_saves / most_saves
+
+        total_demos = filled_data['demo_inflicted'].sum()
+        avg_demos = total_demos / matches[player_id] 
+        norm_demos = avg_demos / most_demos
+
+        total_time_supersonic = filled_data['movement_percent_supersonic_speed'].sum()
+        avg_time_supersonic = total_time_supersonic / matches[player_id]
+        norm_time_supersonic = avg_time_supersonic / most_supersonic
+
+        if  norm_goals > avg_goals_ovr:
             print(f"Player {player_id} is a goal scorer.")
         elif norm_assists > avg_assists_ovr:
             print(f"Player {player_id} is an assist provider.")
