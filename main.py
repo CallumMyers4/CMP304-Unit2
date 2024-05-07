@@ -11,13 +11,15 @@ if elbow == '1':
     dataPrep.plotElbow()
 
 region_check = ""   #create a variable to allow user to input a selection
-
 #create a list of valid regions for players to input
 valid_regions = ["Oceania", "North America", "South America", "Asia-Pacific North", "Asia-Pacific South", "Middle East & North Africa", 
                  "Europe", "Sub-Saharan Africa"]
 
 while region_check != "Quit":
-    region_check = input("Enter region to classify: ")  #user selects which region to extract data from   
+    print(f"Enter a region from the list: ")
+    for region in valid_regions:
+        print(region)
+    region_check = input("Enter region, or Quit to exit: ")  #user selects which region to extract data from   
     if region_check in valid_regions:
         region_data = dataPrep.selectRegion(region_check)   #select players from a single region
         player_data = region_data.groupby('player_id')      #groups all rows relating to the same player

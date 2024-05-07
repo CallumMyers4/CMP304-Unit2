@@ -193,11 +193,11 @@ def classifyPlayersAI(players, matches):
 
     #split the data into enough to train the AI, then enough to test this learning
     print(f"Splitting AI datasets...")
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 
     #begin to train the AI
     print(f"Training AI...")
-    clf = DecisionTreeClassifier()      #creates a new decision tree classifier for supervised learning
+    clf = DecisionTreeClassifier()     #creates a new decision tree classifier for supervised learning
     clf.fit(X_train, y_train)   #uses the player stats stored in X and labels attached to these stats in Y to learn the class rules
 
     #make predictions
@@ -209,5 +209,11 @@ def classifyPlayersAI(players, matches):
     for i, (player_id, _) in enumerate(players):       #for loop which cycles through all of the players dataset
         playerClassificationsAI[player_id] = y_predict[i]   #stores all predicted classes into dictionary next to correct player ID
 
+    #draws a pie chart displaying how the AI predicted the split of classes
     print(f"Displaying predicted classes...")
-    tests.drawPieChartsAI(playerClassificationsAI, players)     #draws a pie chart displaying how the AI predicted the split of classes
+    tests.drawPieChartsAI(playerClassificationsAI, players) 
+
+    #writes out an accuracy report showing where the AI was most and least accurate    
+    print(f"Drawing accuracy chart of AI...")
+    accuracy_report = classification_report(y_test, y_predict)
+    print(accuracy_report)

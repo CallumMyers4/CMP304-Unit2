@@ -15,3 +15,5 @@ Sources:
     https://www.kaggle.com/datasets/dylanmonfret/rlcs-202122?resource=download
     Row iteration: 6th May
     https://stackoverflow.com/questions/16476924/how-can-i-iterate-over-rows-in-a-pandas-dataframe
+    Classification report: 6th May
+    https://www.statology.org/sklearn-classification-report/
